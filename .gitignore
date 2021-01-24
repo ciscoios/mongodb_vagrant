@@ -1,5 +1,4 @@
-*.ppk
-*.pub
-.keys
 .git
 .vagrant
+*.log
+result/
