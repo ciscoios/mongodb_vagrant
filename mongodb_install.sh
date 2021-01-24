@@ -35,7 +35,7 @@ if [ $(mongo localhost:27017 --eval 'db.getMongo().getDBNames().indexOf("spark")
 # create database with collections users
     mongo 127.0.0.1:27017 --eval "db=db.getSiblingDB('spark'); db.createCollection('users');"
    # Add user to database
-    mongo 127.0.0.1:27017 --eval "db=db.getSiblingDB('spark'); db.createUser({ user: 'iptcp', pwd: 'root', roles: [ {role: 'readWrite', db: 'spark'}]});"
+    mongo 127.0.0.1:27017 --eval "db=db.getSiblingDB('spark'); db.createUser({ user: 'your_user', pwd: 'your_pass', roles: [ {role: 'readWrite', db: 'spark'}]});"
 
 else
     echo "Database with collections exist, exiting"
@@ -43,7 +43,7 @@ else
     mongo 127.0.0.1:27017 --eval 'db.adminCommand( { listDatabases: 1, filter: { "name": /^spark/ } } )'
 
    #List created admin user
-    mongo 127.0.0.1:27017 --eval "db.getSiblingDB('spark').getUsers({ filter: { "user": /^iptcp/ } })"
+    mongo 127.0.0.1:27017 --eval "db.getSiblingDB('spark').getUsers({ filter: { "user": /^your_user/ } })"
     exit 0
 fi
 
