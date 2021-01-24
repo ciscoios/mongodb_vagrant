@@ -39,11 +39,11 @@ if [ $(mongo localhost:27017 --eval 'db.getMongo().getDBNames().indexOf("spark")
 
 else
     echo "Database with collections exist, exiting"
+    #List created spark database
+    mongo 127.0.0.1:27017 --eval 'db.adminCommand( { listDatabases: 1, filter: { "name": /^spark/ } } )'
+
+   #List created admin user
+    mongo 127.0.0.1:27017 --eval "db.getSiblingDB('spark').getUsers({ filter: { "user": /^iptcp/ } })"
     exit 0
 fi
 
-#List created spark database
-mongo 127.0.0.1:27017 --eval 'db.adminCommand( { listDatabases: 1, filter: { "name": /^spark/ } } )'
-
-#List created admin user
-mongo 127.0.0.1:27017 --eval "db.getSiblingDB('spark').getUsers({ filter: { "user": /^iptcp/ } })"
