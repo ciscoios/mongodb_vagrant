@@ -1,11 +1,9 @@
 #!/bin/bash
-
-# Edit the following to change the name of the database user that will be created:
-APP_DB_USER=postgres
-APP_DB_PASS='passwd'
-
+#Install gpg key
+sudo apt-get install -y gnupg 
 # Edit the following to change the name of the database that is created (defaults to the user name)
-APP_DB_NAME=$APP_DB_USER
+APP_DB_USER=postgres
+APP_DB_NAME=${APP_DB_USER}_lab
 
 # Edit the following to change the version of PostgreSQL that is installed
 PG_VERSION=9.6
@@ -22,10 +20,6 @@ then
   exit
 fi
 
-
-#Install gpg key
-sudo apt-get install -y gnupg 
-
 PG_REPO_APT_SOURCE=/etc/apt/sources.list.d/pgdg.list
 if [ ! -f "$PG_REPO_APT_SOURCE" ]
 then
@@ -41,7 +35,11 @@ fi
 apt-get update && \
 apt-get -y upgrade && \
 
-apt-get -y install "postgresql-$PG_VERSION" "postgresql-contrib-$PG_VERSION" && \
+apt-get -y install "postgresql-$PG_VERSION" "postgresql-contrib-$PG_VERSION" pwgen && \
+
+APP_DB_PASS=`pwgen 10 1`
+sudo usermod --password $(echo $APP_DB_PASS | openssl passwd -1 -stdin) postgres
+
 
 PG_CONF="/etc/postgresql/$PG_VERSION/main/postgresql.conf"
 PG_HBA="/etc/postgresql/$PG_VERSION/main/pg_hba.conf"
@@ -56,12 +54,10 @@ echo "client_encoding = utf8" >> "$PG_CONF"
 # Reload postgresql config:
 service postgresql reload
 
-pass=$((perl -e 'print crypt($ARGV[0], "password")' passwd)
-sudo useradd -m -p $pass $APP_DB_USER
 # if you have more complex things you'll need to put that in a create_db.sql file and run the script as
 #sudo -u postgres psql < create_db.sql
 
-cat <<EOF su - postgres -c psql
+cat <<EOF | su - postgres -c psql
 -- Create the database user:
 CREATE USER $APP_DB_USER WITH PASSWORD '$APP_DB_PASS';
 -- Create the database:
@@ -84,10 +80,10 @@ echo ""
 print_db_usage () {
   echo "Your PostgreSQL database has been setup and can be accessed on your local machine on the forwarded port (default: 5432)"
   echo "  Host: localhost"
-  echo "  Port: 5432"
   echo "  Database: $APP_DB_NAME"
   echo "  Username: $APP_DB_USER"
   echo "  Password: $APP_DB_PASS"
+  echo "  Port: 5432"
   echo ""
   echo "Admin access to postgres user via VM:"
   echo "  vagrant ssh"
@@ -96,14 +92,17 @@ print_db_usage () {
   echo "psql access to app database user via VM:"
   echo "  vagrant ssh"
   echo "  sudo su - postgres"
-  echo "  PGUSER=$APP_DB_USER PGPASSWORD=$APP_DB_PASS psql -h localhost $APP_DB_NAME"
+  echo "psql and then \c $APP_DB_NAME or psql -c "\c $APP_DB_NAME""
+  echo ""
   echo ""
   echo "Env variable for application development:"
-  echo "  DATABASE_URL=postgresql://$APP_DB_USER:$APP_DB_PASS@localhost:15432/$APP_DB_NAME"
+  echo "  DATABASE_URL=postgresql://$APP_DB_USER:$APP_DB_PASS@localhost:5432/$APP_DB_NAME"
   echo ""
   echo "Local command to access the database via psql:"
-  echo "  PGUSER=$APP_DB_USER PGPASSWORD=$APP_DB_PASS psql -h localhost -p 15432 $APP_DB_NAME"
+  echo "  PGUSER=$APP_DB_USER PGPASSWORD=$APP_DB_PASS psql -h localhost -p 5432 $APP_DB_NAME"
 }
 
 
 print_db_usage
+
+

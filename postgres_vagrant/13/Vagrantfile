@@ -7,7 +7,7 @@ config.vm.network "forwarded_port", host_ip: "127.0.0.1", guest_ip: "127.0.0.1",
 
 #to change vm name in Virtualbox
    config.vm.provider "virtualbox" do |v|
-  v.name = "postgresql-lab"
+  v.name = "postgresql-lab-13"
 end
 config.vm.provision "shell",
     path: "postgresql_deploy.sh"
